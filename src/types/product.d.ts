@@ -8,3 +8,13 @@ export interface ProductWithPrice {
   image: string;
   price: Stripe.Price | undefined;
 }
+
+export interface ProductInfo {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  originalPrice?: number;
+  discount?: string;
+  rating: number;
+}

@@ -7,18 +7,11 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import Image from "next/image";
+import { ProductInfo } from "../types/product";
 
-type Product = {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  originalPrice?: number;
-  discount?: string;
-  rating: number;
-};
+import { useRouter } from "next/navigation";
 
-const products: Product[] = [
+const products: ProductInfo[] = [
   {
     id: "1",
     name: "Sample Product 1",
@@ -47,6 +40,7 @@ const products: Product[] = [
 ];
 
 export default function ProductCarousel() {
+  const router = useRouter();
   return (
     <div className="w-full px-4 py-8">
       <Swiper
@@ -92,8 +86,11 @@ export default function ProductCarousel() {
                     ${product.price.toFixed(2)}
                   </span>
                 </div>
-                <button className="mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded text-sm">
-                  Add to cart
+                <button
+                  className="bg-orange-500 text-white px-4 py-2 mt-2 rounded"
+                  onClick={() => router.push(`/buy/${product.id}`)}
+                >
+                  Buy Now
                 </button>
               </div>
             </div>
