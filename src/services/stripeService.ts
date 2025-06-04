@@ -25,3 +25,12 @@ export async function getProducts() {
   );
   return productsWithPrices;
 }
+
+export async function getProductPrices(productId: string) {
+  const price = await stripe.prices.list({
+    product: productId,
+    active: true,
+    limit: 1,
+  });
+  return price.data[0];
+}
