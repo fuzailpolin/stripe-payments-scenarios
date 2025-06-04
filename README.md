@@ -1,19 +1,18 @@
-# Stripe Payments with Subscription & Auth - Next.js App
+# Stripe Payments with Buy Now & Subscriptions - Next.js App
 
-This project is a **full-stack subscription-based SaaS starter** built with **Next.js 14 App Router**, **Stripe**, **MongoDB**, and **NextAuth**. It allows users to sign up, subscribe to products, and handle payments with Stripe. Failed payments are tracked, and authentication is managed using email and password.
+This project is a **full-stack eCommerce starter** built with **Next.js 14 App Router**, **Stripe**, **MongoDB**, and **NextAuth**. It supports product display, "Buy Now" payments using Stripe Elements, and future support for subscriptions. Authentication is handled via email and password using NextAuth.
 
 ---
 
 ## 🚀 Features
 
-- 🔐 Authentication via **NextAuth** (Credentials Provider)
-- 💳 Stripe integration for products & subscriptions
-- 👥 User management in MongoDB (Atlas)
-- 📦 Product & price fetching from Stripe
-- 📃 Webhooks handling (e.g., for failed payments)
-- 📄 Protected routes using session-based logic
-- 🎨 Tailwind CSS for styling
-- ☁️ Fully environment-configured with `.env`
+- 🔐 Authentication with **NextAuth.js**
+- 💳 "Buy Now" flow using **Stripe Elements**
+- 📦 Static product data file (no DB needed for products)
+- 🧾 Stripe PaymentIntent creation
+- 🎨 Clean UI with **Tailwind CSS**
+- 📄 Stripe Elements UI for card & mobile payments (Apple/Google Pay)
+- 🧠 Scalable structure for future subscriptions and webhooks
 
 ---
 
@@ -23,37 +22,56 @@ This project is a **full-stack subscription-based SaaS starter** built with **Ne
 ├── src
 │   ├── app
 │   │   ├── api
-│   │   │   └── auth/[...nextauth]/route.ts      # NextAuth route
-│   │   │   └── stripe/subscribe/route.ts       # Subscribe endpoint
-│   │   │   └── stripe/webhooks/route.ts        # Stripe webhook handler
-│   │   ├── login/page.tsx                      # Login page
-│   │   ├── signup/page.tsx                     # Signup page
-│   │   └── page.tsx                            # Home page (Products)
+│   │   │   └── stripe/payment-intent/route.ts   # Creates Stripe PaymentIntent
+│   │   ├── buy/[productId]/page.tsx             # Buy Now Page (left + right components)
+│   │   ├── login/page.tsx
+│   │   ├── signup/page.tsx
+│   │   └── page.tsx                             # Product carousel page
 │   ├── components
 │   │   ├── ProductCard.tsx
-│   │   └── SubscriptionButton.tsx
+│   │   ├── BuyNowProductInfo.tsx                # Left side of Buy Now page
+│   │   └── BuyNowStripePayment.tsx              # Stripe Elements on right
+│   ├── data
+│   │   └── products.ts                          # Static products array
 │   ├── features
-│   │   └── auth/useAuth.ts                     # Auth hook using NextAuth
+│   │   └── auth/useAuth.ts                      # NextAuth-based hook
 │   ├── lib
-│   │   ├── mongodb.ts                          # MongoDB connection
-│   │   └── stripe.ts                           # Stripe initialization
-│   ├── services
-│   │   └── userService.ts                      # User DB helper
+│   │   └── stripe.ts                            # Stripe instance
 │   ├── types
-│   │   └── product.ts                          # Stripe product types
+│   │   └── product.ts                           # ProductInfo types
 │   ├── utils
 │   │   └── formatCurrency.ts
-│
-├── public                                      # Static assets
-├── .env.local                                  # Environment variables
-└── README.md                                   # This file
+├── public
+├── .env.local
+└── README.md
 ```
 
 ---
 
-## 🔧 Setup Instructions
+## 📦 Static Product Data
 
-### 1. Clone the Repo
+Located in `src/data/products.ts`, no need for database integration for product data.
+
+```ts
+const products: ProductInfo[] = [
+  {
+    id: "1",
+    name: "Sample Product 1",
+    image: "https://placehold.co/400x400",
+    price: 20,
+    originalPrice: 25,
+    discount: "-20%",
+    rating: 5,
+  },
+  ...
+]
+```
+
+---
+
+## 🧑‍💻 Getting Started
+
+### 1. Clone & Install
 
 ```bash
 git clone <your-repo-url>
@@ -61,112 +79,67 @@ cd <your-repo-folder>
 yarn install
 ```
 
-### 2. Configure Environment Variables
+### 2. Environment Setup
 
-Create a `.env.local` file in the root with the following values:
+Create `.env.local`:
 
 ```env
-NEXTAUTH_SECRET=your_random_secret_key
+NEXTAUTH_SECRET=your-secret
 NEXTAUTH_URL=http://localhost:3000
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/your-db
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/your-db
 STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PUBLIC_KEY=pk_test_...
 ```
 
-> 💡 Use tools like `openssl rand -base64 32` to generate `NEXTAUTH_SECRET`.
-
-### 3. Run the Development Server
+### 3. Run Project
 
 ```bash
 yarn dev
 ```
 
-Visit: `http://localhost:3000`
+Go to: `http://localhost:3000`
 
 ---
 
-## 🧪 How It Works
+## 💳 Buy Now Flow
 
-### Authentication
-
-- Uses NextAuth with **email/password** (credentials provider).
-- Stores user data in MongoDB (`users` collection).
-
-### Products and Pricing
-
-- Loaded from Stripe via `/api/products` route.
-- Displayed on the homepage.
-
-### Subscription Flow
-
-1. User signs in.
-2. Chooses a product and clicks Subscribe.
-3. Stripe Checkout session is created and user is redirected.
-4. On success/failure, Stripe webhook notifies your app.
-5. Webhook updates subscription/payment status.
-
-### Webhooks
-
-Set these events in Stripe:
-
-- `checkout.session.completed`
-- `invoice.payment_failed`
-- `customer.subscription.deleted`
-
-### Failed Payments
-
-- Tracked in a MongoDB collection (`failedPayments`).
-- Used to re-attempt payment or alert users.
+1. Product cards on homepage have "Buy Now" button.
+2. Redirects to `/buy/[productId]` page.
+3. Left: Shows product data. Right: Stripe payment UI.
+4. User can pay with card or Apple/Google Pay.
 
 ---
 
-## 🔐 Pages
+## ✅ Packages Used
 
-| Route     | Description              |
-| --------- | ------------------------ |
-| `/signup` | Register a new user      |
-| `/login`  | Sign in with credentials |
-| `/`       | Homepage with products   |
-
----
-
-## ✅ TODO / Enhancements
-
-- [ ] Add profile dashboard for users
-- [ ] Email notifications (e.g. failed payment, welcome)
-- [ ] Admin panel to manage subscriptions
-- [ ] Subscription tier upgrades/downgrades
+```bash
+yarn add next-auth stripe @stripe/stripe-js @stripe/react-stripe-js
+yarn add tailwindcss postcss autoprefixer -D
+```
 
 ---
 
-## 🧠 Tech Stack
+## 🔐 Auth Pages
 
-- **Next.js 14** with App Router
-- **TypeScript**
-- **Tailwind CSS**
-- **MongoDB (Atlas)**
-- **Stripe** (products, prices, subscriptions)
-- **NextAuth** for auth
+| Route     | Description        |
+| --------- | ------------------ |
+| `/login`  | Sign in page       |
+| `/signup` | Register new user  |
+| `/`       | Home with carousel |
+| `/buy/id` | Payment page       |
 
 ---
 
 ## 📝 License
 
-This project is licensed under the MIT License.
-
----
-
-## 🤝 Contribution
-
-Feel free to open issues or PRs. Suggestions are welcome!
+MIT License
 
 ---
 
 ## 📬 Contact
 
-For questions or support, reach out to the repo owner or open a GitHub issue.
+For questions or support, open an issue or PR on the GitHub repo.
 
 ---
 
-Happy Coding 💻✨
+Happy Hacking 🎉🚀
