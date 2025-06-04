@@ -7,6 +7,7 @@ import SubscriptionButton from "@/components/SubscriptionButton";
 import { useAuth } from "@/features/auth/useAuth";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import ProductCarousel from "../components/ProductCarousel";
 
 export default function HomePage() {
   const [products, setProducts] = useState<ProductWithPrice[]>([]);
@@ -57,6 +58,8 @@ export default function HomePage() {
           )}
         </div>
       </header>
+
+      <ProductCarousel />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.map((product) => {

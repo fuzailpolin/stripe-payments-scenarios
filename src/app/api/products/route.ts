@@ -5,7 +5,6 @@ import { getProducts } from "@/services/stripeService";
 export async function GET() {
   try {
     const products = await getProducts();
-    console.log(products);
     return NextResponse.json(products);
   } catch (error) {
     console.log(error);

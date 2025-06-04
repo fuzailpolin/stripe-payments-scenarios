@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import clientPromise from "@/lib/mongodb";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { getProductPrices } from "@/services/stripeService";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -15,11 +16,8 @@ export async function POST(request: Request) {
   const { productId } = body;
 
   //Map your productId to Stripe priceId here or fetch from DB
-  const priceIdMap: Record<string, string> = {
-    prod_basic: process.env.STRIPE_PRICE_BASIC || "",
-    prod_pro: process.env.STRIPE_PRICE_PRO || "",
-  };
-  const priceId = "price_1RVcEPR84xJpyBRxHA60pqPG";
+
+  const price = await getProductPrices(productId);
 
   if (!productId) {
     return NextResponse.json({ error: "Invalid product" }, { status: 400 });
@@ -30,10 +28,10 @@ export async function POST(request: Request) {
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: price.id, quantity: 1 }],
       customer_email: session.user?.email || undefined,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}?canceled=true`,
     });
 
     console.log(stripeSession);
@@ -46,7 +44,7 @@ export async function POST(request: Request) {
     await db.collection("subscriptions").insertOne({
       userEmail: session.user?.email,
       productId,
-      priceId: priceId,
+      priceId: price.id,
       stripeSessionId: stripeSession.id,
       status: "pending", // mark as pending until webhook confirms success
       createdAt: new Date(),
